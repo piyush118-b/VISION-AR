@@ -467,19 +467,15 @@ function handleFaceResults(results) {
     if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
         state.faceLandmarks = results.multiFaceLandmarks[0];
 
-        // 1. Telemetry Calculations
-        updateFacialTelemetry(state.faceLandmarks);
-
-        // 2. Mode-Specific Face Rendering
+        // Only process & render FaceMesh in 'facemesh' mode
         if (state.mode === 'facemesh') {
-            drawDetailedFaceMesh(ctx, state.faceLandmarks);
+            updateFacialTelemetry(state.faceLandmarks);
+            if (state.showFaceMesh) {
+                drawDetailedFaceMesh(ctx, state.faceLandmarks);
+            }
         } else if (state.mode === 'ar' && state.arEnabled) {
+            // In AR mode, only render the selected AR filter (sunglasses, hat, batman, skull, cyber)
             renderActiveFilter(ctx, state.faceLandmarks);
-        }
-
-        // Global Wireframe Toggle
-        if (state.showFaceMesh && state.mode !== 'facemesh') {
-            drawDetailedFaceMesh(ctx, state.faceLandmarks);
         }
     } else {
         if (DOM.telemPts) DOM.telemPts.textContent = 'Searching...';
@@ -564,26 +560,27 @@ function drawDetailedFaceMesh(ctx, landmarks) {
 function handleHandResults(results) {
     const ctx = DOM.ctx;
 
+    // Only process & render hand gestures in 'canvas' mode
     if (state.mode === 'canvas') {
         renderDrawnStrokes(ctx);
-    }
 
-    if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
-        state.handLandmarks = results.multiHandLandmarks[0];
-        
-        if (state.showHandLandmarks) {
-            drawConnectors(ctx, state.handLandmarks, HAND_CONNECTIONS, { color: '#ffffff', lineWidth: 2 });
-            drawLandmarks(ctx, state.handLandmarks, { color: '#e4e4e7', lineWidth: 1, radius: 3 });
+        if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+            state.handLandmarks = results.multiHandLandmarks[0];
+            
+            if (state.showHandLandmarks) {
+                drawConnectors(ctx, state.handLandmarks, HAND_CONNECTIONS, { color: '#ffffff', lineWidth: 2 });
+                drawLandmarks(ctx, state.handLandmarks, { color: '#e4e4e7', lineWidth: 1, radius: 3 });
+            }
+
+            const gesture = classifyFingerGesture(state.handLandmarks);
+            processFingerDrawing(ctx, state.handLandmarks, gesture);
+        } else {
+            state.handLandmarks = null;
+            state.currentStroke = null;
+            state.smoothX = null;
+            state.smoothY = null;
+            updateRuleHighlight(null);
         }
-
-        const gesture = classifyFingerGesture(state.handLandmarks);
-        processFingerDrawing(ctx, state.handLandmarks, gesture);
-    } else {
-        state.handLandmarks = null;
-        state.currentStroke = null;
-        state.smoothX = null;
-        state.smoothY = null;
-        updateRuleHighlight(null);
     }
 }
 
