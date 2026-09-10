@@ -7,7 +7,7 @@
 // Global Application State
 const state = {
     mode: 'canvas', // 'canvas' or 'ar'
-    activeFilter: 'skeleton',
+    activeFilter: 'sunglasses',
     showFaceMesh: false,
     showHandLandmarks: false,
     arEnabled: true,
@@ -252,7 +252,12 @@ function setMode(newMode) {
         DOM.paletteBar.style.display = 'none';
         DOM.gestureHelperBox.style.display = 'none';
         DOM.arLibraryBox.style.display = 'flex';
-        showGestureToast('💀', 'AR Face Layer Active', 'Click any style card to activate');
+        
+        // Sync active style card
+        DOM.styleCards.forEach(card => {
+            card.classList.toggle('active', card.dataset.filter === state.activeFilter);
+        });
+        showGestureToast('🎭', 'AR Filter Active', `Active: ${state.activeFilter.replace('_', ' ').toUpperCase()}`);
     }
 }
 
