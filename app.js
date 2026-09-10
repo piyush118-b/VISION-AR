@@ -681,166 +681,369 @@ function renderActiveFilter(ctx, landmarks) {
     ctx.filter = 'none';
 }
 
-// 1. REALISTIC AVIATOR SUNGLASSES (3D ORIENTED & SCALED)
+// 1. LUXURY AVIATOR SUNGLASSES (POLARIZED LENSES + GOLD FRAME + GLARE)
 function drawAviatorGlassesSkinLayer(ctx, sf, lm, w, h) {
-    const img = filterAssets.sunglasses;
     ctx.save();
-    ctx.translate(sf.x, sf.y + sf.scale * 0.06);
+    ctx.translate(sf.x, sf.y + sf.scale * 0.05);
     ctx.rotate(sf.angle);
 
-    const targetW = sf.scale * 2.35 * state.intensity;
-    const targetH = targetW * (img.naturalHeight ? img.naturalHeight / img.naturalWidth : 0.48);
+    const s = sf.scale * 0.011 * state.intensity; // scale factor
+    const eyeDist = sf.scale * 0.48;
 
-    if (img.complete && img.naturalWidth > 0) {
-        ctx.drawImage(img, -targetW / 2, -targetH / 2, targetW, targetH);
-    } else {
-        // Fallback Vector Rendering
-        ctx.fillStyle = 'rgba(10, 10, 14, 0.95)';
-        ctx.strokeStyle = '#e4e4e7';
-        ctx.lineWidth = 3.5;
-        const rW = sf.scale * 0.55 * state.intensity;
-        const rH = rW * 0.65;
+    // A) Metallic Gold Frame Gradient
+    const goldGrad = ctx.createLinearGradient(-sf.scale, -30 * s, sf.scale, 30 * s);
+    goldGrad.addColorStop(0, '#fef08a');
+    goldGrad.addColorStop(0.3, '#eab308');
+    goldGrad.addColorStop(0.7, '#ca8a04');
+    goldGrad.addColorStop(1, '#fef08a');
+
+    // B) Polarized Dark Lens Gradient
+    const lensGrad = ctx.createLinearGradient(0, -35 * s, 0, 45 * s);
+    lensGrad.addColorStop(0, 'rgba(30, 41, 59, 0.95)');
+    lensGrad.addColorStop(0.5, 'rgba(15, 23, 42, 0.98)');
+    lensGrad.addColorStop(1, 'rgba(2, 6, 23, 0.99)');
+
+    // Function to draw individual teardrop aviator lens
+    function drawAviatorLens(centerX, flip) {
+        ctx.save();
+        ctx.translate(centerX, 0);
+        if (flip) ctx.scale(-1, 1);
+
+        // Teardrop Aviator Path
         ctx.beginPath();
-        ctx.ellipse(-sf.scale * 0.45, 0, rW, rH, 0, 0, Math.PI * 2);
-        ctx.ellipse(sf.scale * 0.45, 0, rW, rH, 0, 0, Math.PI * 2);
-        ctx.fill(); ctx.stroke();
+        ctx.moveTo(-32 * s, -18 * s);
+        ctx.quadraticCurveTo(0, -26 * s, 30 * s, -20 * s); // Top brow curve
+        ctx.quadraticCurveTo(40 * s, 0, 32 * s, 26 * s);   // Outer edge
+        ctx.quadraticCurveTo(18 * s, 46 * s, -6 * s, 44 * s); // Teardrop bottom
+        ctx.quadraticCurveTo(-38 * s, 36 * s, -38 * s, 6 * s); // Inner nasal curve
+        ctx.closePath();
+
+        // Fill Polarized Lens
+        ctx.fillStyle = lensGrad;
+        ctx.fill();
+
+        // Diagonal Specular Reflection Streaks
+        ctx.save();
+        ctx.clip(); // Clip glare to inside lens
+        const glareGrad = ctx.createLinearGradient(-25 * s, -25 * s, 25 * s, 25 * s);
+        glareGrad.addColorStop(0, 'rgba(255, 255, 255, 0.45)');
+        glareGrad.addColorStop(0.2, 'rgba(255, 255, 255, 0.05)');
+        glareGrad.addColorStop(0.4, 'rgba(255, 255, 255, 0.35)');
+        glareGrad.addColorStop(0.6, 'rgba(255, 255, 255, 0.0)');
+        ctx.fillStyle = glareGrad;
+        ctx.beginPath();
+        ctx.rect(-50 * s, -50 * s, 100 * s, 100 * s);
+        ctx.fill();
+        ctx.restore();
+
+        // Gold Rim (Outer & Inner)
+        ctx.strokeStyle = goldGrad;
+        ctx.lineWidth = 3.5 * s;
+        ctx.stroke();
+
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+        ctx.lineWidth = 1 * s;
+        ctx.stroke();
+
+        ctx.restore();
     }
+
+    // Draw Left & Right Lenses
+    drawAviatorLens(-eyeDist, false);
+    drawAviatorLens(eyeDist, true);
+
+    // C) Double Metallic Brow & Nose Bars
+    ctx.strokeStyle = goldGrad;
+    ctx.lineWidth = 3 * s;
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+    ctx.shadowBlur = 4 * s;
+
+    // Top Brow Bar
+    ctx.beginPath();
+    ctx.moveTo(-eyeDist + 15 * s, -24 * s);
+    ctx.quadraticCurveTo(0, -28 * s, eyeDist - 15 * s, -24 * s);
+    ctx.stroke();
+
+    // Central Bridge
+    ctx.beginPath();
+    ctx.moveTo(-eyeDist + 26 * s, -8 * s);
+    ctx.quadraticCurveTo(0, -14 * s, eyeDist - 26 * s, -8 * s);
+    ctx.stroke();
+
+    // Temple Arms (Extending to ears)
+    ctx.beginPath();
+    ctx.moveTo(-eyeDist - 34 * s, -12 * s);
+    ctx.lineTo(-eyeDist - 65 * s, -14 * s);
+    ctx.moveTo(eyeDist + 34 * s, -12 * s);
+    ctx.lineTo(eyeDist + 65 * s, -14 * s);
+    ctx.stroke();
+
     ctx.restore();
 }
 
-// 2. VICTORIAN TOP HAT & MONOCLE (3D ROTATED ON FOREHEAD)
+// 2. VICTORIAN TOP HAT & GOLDEN MONOCLE
 function drawTopHatSkinLayer(ctx, sf, eyeR, lm, w, h) {
-    const img = filterAssets.top_hat;
+    const s = sf.scale * 0.01 * state.intensity;
+
+    // --- A) TOP HAT ---
     ctx.save();
-    ctx.translate(sf.foreheadX, sf.foreheadY - sf.scale * 0.15);
+    ctx.translate(sf.foreheadX, sf.foreheadY - 20 * s);
     ctx.rotate(sf.angle);
 
-    const targetW = sf.scale * 3.1 * state.intensity;
-    const targetH = targetW * (img.naturalHeight ? img.naturalHeight / img.naturalWidth : 0.95);
+    const hatW = 140 * s;
+    const hatH = 130 * s;
 
-    if (img.complete && img.naturalWidth > 0) {
-        ctx.drawImage(img, -targetW / 2, -targetH * 0.82, targetW, targetH);
-    } else {
-        // Fallback Vector Top Hat
-        ctx.fillStyle = '#09090b';
-        ctx.strokeStyle = '#d4d4d8';
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.ellipse(0, 0, targetW * 0.55, 14 * state.intensity, 0, 0, Math.PI * 2);
-        ctx.fill(); ctx.stroke();
-        ctx.fillStyle = '#18181b';
-        ctx.fillRect(-targetW * 0.38, -targetH * 0.75, targetW * 0.76, targetH * 0.75);
-    }
+    // 1. Curved Velvet Brim
+    const brimGrad = ctx.createRadialGradient(0, 0, 10 * s, 0, 0, hatW * 0.7);
+    brimGrad.addColorStop(0, '#27272a');
+    brimGrad.addColorStop(0.7, '#09090b');
+    brimGrad.addColorStop(1, '#000000');
+
+    ctx.fillStyle = brimGrad;
+    ctx.strokeStyle = '#d4d4d8';
+    ctx.lineWidth = 2 * s;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, hatW * 0.72, 22 * s, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    // 2. Satin Silk Crown
+    const crownGrad = ctx.createLinearGradient(-hatW * 0.5, 0, hatW * 0.5, 0);
+    crownGrad.addColorStop(0, '#18181b');
+    crownGrad.addColorStop(0.3, '#3f3f46');
+    crownGrad.addColorStop(0.7, '#18181b');
+    crownGrad.addColorStop(1, '#09090b');
+
+    ctx.fillStyle = crownGrad;
+    ctx.beginPath();
+    ctx.moveTo(-hatW * 0.48, -4 * s);
+    ctx.lineTo(-hatW * 0.52, -hatH);
+    ctx.quadraticCurveTo(0, -hatH - 12 * s, hatW * 0.52, -hatH);
+    ctx.lineTo(hatW * 0.48, -4 * s);
+    ctx.quadraticCurveTo(0, 8 * s, -hatW * 0.48, -4 * s);
+    ctx.closePath();
+    ctx.fill();
+
+    // 3. Satin Ribbon Band with Gold Buckle
+    ctx.fillStyle = '#dc2626'; // Deep Crimson Satin Band
+    ctx.beginPath();
+    ctx.ellipse(0, -12 * s, hatW * 0.48, 14 * s, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Gold Buckle
+    ctx.strokeStyle = '#facc15';
+    ctx.lineWidth = 3.5 * s;
+    ctx.strokeRect(-12 * s, -18 * s, 24 * s, 14 * s);
+
     ctx.restore();
 
-    // Victorian Brass Monocle Ring Over Eye
+    // --- B) ANTIQUE GOLDEN MONOCLE ---
     ctx.save();
     ctx.translate(eyeR.x, eyeR.y);
     ctx.rotate(sf.angle);
-    ctx.strokeStyle = '#d4af37'; // Antique Gold
-    ctx.lineWidth = 3;
-    ctx.shadowColor = '#d4af37';
-    ctx.shadowBlur = 8;
+
+    const monoRadius = 26 * s;
+
+    // Translucent Blue Glass Lens
+    ctx.fillStyle = 'rgba(56, 189, 248, 0.25)';
     ctx.beginPath();
-    ctx.arc(0, 0, sf.scale * 0.38 * state.intensity, 0, Math.PI * 2);
-    ctx.stroke();
-
-    // Monocle Hanging Chain
-    ctx.beginPath();
-    ctx.moveTo(sf.scale * 0.35 * state.intensity, 0);
-    ctx.quadraticCurveTo(sf.scale * 0.7, sf.scale * 0.8, sf.scale * 0.3, sf.scale * 1.3);
-    ctx.strokeStyle = 'rgba(212, 175, 55, 0.65)';
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
-    ctx.restore();
-}
-
-// 3. BATMAN BAT-COWL (UPPER FACE 3D LAYER)
-function drawBatmanCowlSkinLayer(ctx, sf, eyeL, eyeR, lm, w, h) {
-    const img = filterAssets.batman;
-    ctx.save();
-    ctx.translate(sf.x, sf.y - sf.scale * 0.1);
-    ctx.rotate(sf.angle);
-
-    const targetW = sf.scale * 2.85 * state.intensity;
-    const targetH = targetW * (img.naturalHeight ? img.naturalHeight / img.naturalWidth : 1.0);
-
-    if (img.complete && img.naturalWidth > 0) {
-        ctx.drawImage(img, -targetW / 2, -targetH * 0.44, targetW, targetH);
-    } else {
-        // Fallback Cowl
-        ctx.fillStyle = '#09090b';
-        ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(-targetW * 0.4, -targetH * 0.5);
-        ctx.lineTo(0, -targetH * 0.2);
-        ctx.lineTo(targetW * 0.4, -targetH * 0.5);
-        ctx.lineTo(targetW * 0.35, targetH * 0.2);
-        ctx.lineTo(-targetW * 0.35, targetH * 0.2);
-        ctx.closePath();
-        ctx.fill(); ctx.stroke();
-    }
-
-    // Glowing Angular Ocular Slits
-    ctx.fillStyle = '#ffffff';
-    ctx.shadowColor = '#00f0ff';
-    ctx.shadowBlur = 18;
-    const eyeOffset = sf.scale * 0.45;
-    ctx.beginPath();
-    ctx.ellipse(-eyeOffset, 0, sf.scale * 0.18, sf.scale * 0.08, -0.15, 0, Math.PI * 2);
-    ctx.ellipse(eyeOffset, 0, sf.scale * 0.18, sf.scale * 0.08, 0.15, 0, Math.PI * 2);
+    ctx.arc(0, 0, monoRadius, 0, Math.PI * 2);
     ctx.fill();
 
+    // Specular Glint
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
+    ctx.lineWidth = 2 * s;
+    ctx.beginPath();
+    ctx.arc(0, 0, monoRadius * 0.75, Math.PI * 1.1, Math.PI * 1.6);
+    ctx.stroke();
+
+    // Antique Gold Rim
+    ctx.strokeStyle = '#eab308';
+    ctx.lineWidth = 3.5 * s;
+    ctx.shadowColor = '#eab308';
+    ctx.shadowBlur = 8 * s;
+    ctx.beginPath();
+    ctx.arc(0, 0, monoRadius, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // Golden Chain Link Draping Down
+    ctx.shadowBlur = 0;
+    ctx.strokeStyle = 'rgba(234, 179, 8, 0.85)';
+    ctx.lineWidth = 2 * s;
+    ctx.beginPath();
+    ctx.moveTo(monoRadius * 0.8, monoRadius * 0.6);
+    ctx.quadraticCurveTo(monoRadius * 2.2, monoRadius * 3, monoRadius * 1.2, monoRadius * 5.5);
+    ctx.stroke();
+
     ctx.restore();
 }
 
-// 4. 3D SKULL SKELETON MASK (ANATOMICAL 3D REGISTRATION)
+// 3. BATMAN DARK KNIGHT TACTICAL COWL
+function drawBatmanCowlSkinLayer(ctx, sf, eyeL, eyeR, lm, w, h) {
+    const s = sf.scale * 0.01 * state.intensity;
+    ctx.save();
+    ctx.translate(sf.x, sf.y);
+    ctx.rotate(sf.angle);
+
+    const faceW = sf.scale * 1.4;
+
+    // Matte Carbon Fiber Gradient
+    const cowlGrad = ctx.createLinearGradient(0, -120 * s, 0, 60 * s);
+    cowlGrad.addColorStop(0, '#09090b');
+    cowlGrad.addColorStop(0.5, '#18181b');
+    cowlGrad.addColorStop(1, '#020617');
+
+    ctx.fillStyle = cowlGrad;
+    ctx.strokeStyle = '#27272a';
+    ctx.lineWidth = 2 * s;
+
+    // Bat Cowl Polygon (Pointed Bat Ears + Brow + Nose + Cheeks)
+    ctx.beginPath();
+    ctx.moveTo(0, -60 * s); // Forehead center
+    // Left Ear
+    ctx.lineTo(-40 * s, -50 * s);
+    ctx.lineTo(-65 * s, -145 * s); // Ear peak
+    ctx.lineTo(-80 * s, -35 * s);
+    // Left Temple & Cheek Guard
+    ctx.lineTo(-75 * s, 25 * s);
+    ctx.lineTo(-45 * s, 45 * s); // Cheek contour
+    // Nose Armor Bevel
+    ctx.lineTo(-14 * s, 15 * s);
+    ctx.lineTo(0, 38 * s); // Nose point
+    ctx.lineTo(14 * s, 15 * s);
+    // Right Cheek Guard
+    ctx.lineTo(45 * s, 45 * s);
+    ctx.lineTo(75 * s, 25 * s);
+    // Right Ear
+    ctx.lineTo(80 * s, -35 * s);
+    ctx.lineTo(65 * s, -145 * s); // Ear peak
+    ctx.lineTo(40 * s, -50 * s);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Chiseled Center Crease Line
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
+    ctx.lineWidth = 1.5 * s;
+    ctx.beginPath();
+    ctx.moveTo(0, -60 * s);
+    ctx.lineTo(0, 38 * s);
+    ctx.stroke();
+
+    // Glowing Tactical White-Cyan Ocular Lenses
+    ctx.fillStyle = '#ffffff';
+    ctx.shadowColor = '#38bdf8';
+    ctx.shadowBlur = 20 * s;
+
+    const eyeOffsetX = sf.scale * 0.45;
+    [-eyeOffsetX, eyeOffsetX].forEach((ex, idx) => {
+        ctx.save();
+        ctx.translate(ex, 0);
+        ctx.rotate(idx === 0 ? -0.15 : 0.15);
+        ctx.beginPath();
+        ctx.moveTo(-18 * s, -6 * s);
+        ctx.lineTo(18 * s, -4 * s);
+        ctx.lineTo(12 * s, 6 * s);
+        ctx.lineTo(-16 * s, 2 * s);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+    });
+
+    ctx.restore();
+}
+
+// 4. 3D CYBER SKULL / ANATOMICAL MASK
 function draw3DSkullSkinLayer(ctx, sf, chin, lm, w, h) {
-    const img = filterAssets.skeleton;
+    const s = sf.scale * 0.01 * state.intensity;
     ctx.save();
     const faceMidY = (sf.foreheadY + chin.y) / 2;
     ctx.translate(sf.x, faceMidY);
     ctx.rotate(sf.angle);
 
-    const targetW = sf.scale * 2.85 * state.intensity;
-    const targetH = sf.height * 1.12 * state.intensity;
+    const skullW = 85 * s;
+    const skullH = sf.height * 0.58;
 
-    if (img.complete && img.naturalWidth > 0) {
-        ctx.drawImage(img, -targetW / 2, -targetH / 2, targetW, targetH);
-    } else {
-        // Fallback anatomical bone layer
-        ctx.fillStyle = 'rgba(235, 232, 225, 0.92)';
-        ctx.strokeStyle = '#27272a';
-        ctx.lineWidth = 2.5;
+    // Bone Ivory Radial Shading
+    const boneGrad = ctx.createRadialGradient(0, -10 * s, 10 * s, 0, 0, skullW * 1.1);
+    boneGrad.addColorStop(0, '#f4f4f5');
+    boneGrad.addColorStop(0.6, '#e4e4e7');
+    boneGrad.addColorStop(1, '#a1a1aa');
+
+    ctx.fillStyle = boneGrad;
+    ctx.strokeStyle = '#3f3f46';
+    ctx.lineWidth = 3 * s;
+
+    // Skull Outer Shell
+    ctx.beginPath();
+    ctx.ellipse(0, 0, skullW, skullH, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    // Hollow Orbital Sockets (Black with Glowing Cyan Pupils)
+    [-34 * s, 34 * s].forEach(ex => {
+        ctx.fillStyle = '#09090b';
         ctx.beginPath();
-        ctx.ellipse(0, 0, targetW * 0.45, targetH * 0.48, 0, 0, Math.PI * 2);
-        ctx.fill(); ctx.stroke();
+        ctx.ellipse(ex, -18 * s, 20 * s, 24 * s, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Glowing Pupil
+        ctx.fillStyle = '#00f0ff';
+        ctx.shadowColor = '#00f0ff';
+        ctx.shadowBlur = 15 * s;
+        ctx.beginPath();
+        ctx.arc(ex, -18 * s, 5 * s, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+    });
+
+    // Inverted Triangular Nasal Cavity
+    ctx.fillStyle = '#09090b';
+    ctx.beginPath();
+    ctx.moveTo(0, 4 * s);
+    ctx.lineTo(10 * s, 22 * s);
+    ctx.lineTo(-10 * s, 22 * s);
+    ctx.closePath();
+    ctx.fill();
+
+    // Anatomical Teeth Line & Enamel Separators
+    ctx.strokeStyle = '#18181b';
+    ctx.lineWidth = 2.5 * s;
+    ctx.beginPath();
+    ctx.moveTo(-45 * s, 46 * s);
+    ctx.lineTo(45 * s, 46 * s);
+    ctx.stroke();
+
+    for (let i = -36 * s; i <= 36 * s; i += 12 * s) {
+        ctx.beginPath();
+        ctx.moveTo(i, 36 * s);
+        ctx.lineTo(i, 56 * s);
+        ctx.stroke();
     }
+
     ctx.restore();
 }
 
-// 5. CYBER MATRIX HUD (ANIMATED HIGH-TECH SPATIAL TELEMETRY)
+// 5. CYBER MATRIX HUD (ANIMATED SCI-FI RETICLES)
 function drawClassicCyberFilter(ctx, sf, eyeL, eyeR, forehead, chin, lm, w, h) {
     ctx.save();
     const time = performance.now() * 0.003;
 
-    // Glowing Matrix Cyan
     ctx.strokeStyle = '#00f0ff';
     ctx.fillStyle = '#00f0ff';
     ctx.shadowColor = '#00f0ff';
-    ctx.shadowBlur = 12;
+    ctx.shadowBlur = 14;
 
     // A) Rotating Eye Targeting Reticles
     [eyeL, eyeR].forEach((eye, idx) => {
-        const radius = sf.scale * 0.32 * state.intensity;
+        const radius = sf.scale * 0.34 * state.intensity;
         const dir = idx === 0 ? 1 : -1;
         
         ctx.save();
         ctx.translate(eye.x, eye.y);
         ctx.rotate(time * dir);
 
-        ctx.lineWidth = 1.8;
+        ctx.lineWidth = 2;
         ctx.beginPath();
         ctx.arc(0, 0, radius, 0, Math.PI * 1.4);
         ctx.stroke();
@@ -851,28 +1054,28 @@ function drawClassicCyberFilter(ctx, sf, eyeL, eyeR, forehead, chin, lm, w, h) {
 
         // Crosshairs
         ctx.beginPath();
-        ctx.moveTo(-radius * 1.2, 0); ctx.lineTo(-radius * 0.7, 0);
-        ctx.moveTo(radius * 0.7, 0); ctx.lineTo(radius * 1.2, 0);
-        ctx.moveTo(0, -radius * 1.2); ctx.lineTo(0, -radius * 0.7);
-        ctx.moveTo(0, radius * 0.7); ctx.lineTo(0, radius * 1.2);
+        ctx.moveTo(-radius * 1.25, 0); ctx.lineTo(-radius * 0.75, 0);
+        ctx.moveTo(radius * 0.75, 0); ctx.lineTo(radius * 1.25, 0);
+        ctx.moveTo(0, -radius * 1.25); ctx.lineTo(0, -radius * 0.75);
+        ctx.moveTo(0, radius * 0.75); ctx.lineTo(0, radius * 1.25);
         ctx.stroke();
 
         ctx.restore();
     });
 
-    // B) Vertical Cyber Laser Scanner Line
-    const scanY = sf.foreheadY + ((Math.sin(time * 1.5) + 1) / 2) * sf.height;
-    ctx.lineWidth = 2;
+    // B) Vertical Hologram Scan Beam
+    const scanY = sf.foreheadY + ((Math.sin(time * 1.8) + 1) / 2) * sf.height;
+    ctx.lineWidth = 2.5;
     ctx.beginPath();
     ctx.moveTo(sf.x - sf.scale * 1.4, scanY);
     ctx.lineTo(sf.x + sf.scale * 1.4, scanY);
     ctx.stroke();
 
-    // C) Telemetry HUD Data Tag
-    ctx.font = 'bold 11px "Space Grotesk", monospace';
-    ctx.shadowBlur = 6;
-    ctx.fillText(`[SYS_LOCK] 468_PTS • YAW: ${(sf.angle * 180 / Math.PI).toFixed(1)}°`, sf.x - sf.scale * 1.2, sf.foreheadY - 20);
-    ctx.fillText(`FPS: ${state.fps} • CONF: 99.4%`, sf.x - sf.scale * 1.2, sf.foreheadY - 6);
+    // C) Telemetry Data Readout
+    ctx.font = 'bold 12px "Space Grotesk", monospace';
+    ctx.shadowBlur = 8;
+    ctx.fillText(`[TARGET_LOCKED] 468_PTS • ROLL: ${(sf.angle * 180 / Math.PI).toFixed(1)}°`, sf.x - sf.scale * 1.2, sf.foreheadY - 24);
+    ctx.fillText(`FPS: ${state.fps} • CONFIDENCE: 99.8%`, sf.x - sf.scale * 1.2, sf.foreheadY - 8);
 
     ctx.restore();
 }
