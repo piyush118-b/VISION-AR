@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VisionAR Studio — Monochrome Touchless Engine</title>
+    <!-- Fonts: Space Grotesk & Plus Jakarta Sans -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome 6 Pro -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="style.css">
+
+    <!-- MediaPipe & Three.js Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body class="monochrome-theme">
+    <!-- Subtle Ambient Silver Glows -->
+    <div class="ambient-mono orb-silver-1"></div>
+    <div class="ambient-mono orb-silver-2"></div>
+
+    <div class="studio-container">
+        <!-- Top Navbar -->
+        <header class="mono-navbar">
+            <div class="nav-brand-group">
+                <div class="logo-image-box">
+                    <img src="visionar_mono_logo.png" alt="VisionAR Monochrome Logo" class="brand-logo-img">
+                </div>
+                <div class="brand-text-block">
+                    <h1 class="brand-title">VISION<span class="mono-bold">AR</span> <span class="brand-badge">MONO EDITION</span></h1>
+                    <p class="brand-sub">☝️ Draw • 🖐️ Open Palm Erase • ✊ Move Freely</p>
+                </div>
+            </div>
+
+            <!-- Mode Switcher Tabs -->
+            <div class="mono-mode-tabs">
+                <button class="mode-tab-btn active" id="tab-mode-canvas">
+                    <i class="fa-solid fa-pen-nib"></i> Air Canvas
+                </button>
+                <button class="mode-tab-btn" id="tab-mode-ar">
+                    <i class="fa-solid fa-masks-theater"></i> AR Filters
+                </button>
+            </div>
+
+            <div class="nav-status-group">
+                <div class="status-pill pill-live">
+                    <span class="pulse-dot"></span>
+                    <span id="txt-camera-status">Studio Live • 60 FPS</span>
+                </div>
+
+                <div class="status-pill pill-gesture-active" id="pill-gesture">
+                    <span id="txt-gesture-emoji">☝️</span>
+                    <span id="txt-gesture-name">Index Finger: Draw</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Air Canvas Palette Bar -->
+        <div class="mono-palette-bar" id="palette-bar">
+            <span class="palette-title"><i class="fa-solid fa-swatchbook"></i> Palette:</span>
+            <div class="swatch-item active" data-color="#ffffff" style="background: #ffffff;" title="Pure White"></div>
+            <div class="swatch-item" data-color="#00f0ff" style="background: #00f0ff;" title="Cyan Accent"></div>
+            <div class="swatch-item" data-color="#d4d4d8" style="background: #d4d4d8;" title="Silver Light"></div>
+            <div class="swatch-item" data-color="#a1a1aa" style="background: #a1a1aa;" title="Slate Gray"></div>
+            <div class="swatch-item" data-color="#3f3f46" style="background: #3f3f46;" title="Charcoal"></div>
+            <div class="swatch-item" data-color="#ff0055" style="background: #ff0055;" title="High Contrast Red"></div>
+            
+            <div class="bar-separator"></div>
+
+            <button class="mono-btn btn-danger-sm" id="btn-clear-canvas">
+                <i class="fa-solid fa-trash-can"></i> Clear Board
+            </button>
+        </div>
+
+        <!-- Main Studio Workspace Grid -->
+        <main class="studio-grid-layout">
+            <!-- Stage Container -->
+            <section class="stage-container">
+                <div class="mono-camera-frame">
+                    <!-- HUD Corner Brackets -->
+                    <div class="hud-bracket top-l"></div>
+                    <div class="hud-bracket top-r"></div>
+                    <div class="hud-bracket bot-l"></div>
+                    <div class="hud-bracket bot-r"></div>
+
+                    <!-- Hidden Video Feed -->
+                    <video id="webcam" playsinline style="display: none;"></video>
+                    
+                    <!-- Main Canvas Render Surface -->
+                    <canvas id="output-canvas"></canvas>
+
+                    <!-- Gesture Toast Badge -->
+                    <div class="mono-toast" id="gesture-toast">
+                        <div class="toast-emoji-box" id="toast-emoji-box">☝️</div>
+                        <div class="toast-meta">
+                            <h4 id="toast-title">Index Finger Detected</h4>
+                            <p id="toast-sub">Drawing Mode Active</p>
+                        </div>
+                    </div>
+
+                    <!-- Viewport Floating Dock -->
+                    <div class="mono-dock-toolbar">
+                        <button class="dock-circle-btn" id="btn-toggle-cam" title="Toggle Camera">
+                            <i class="fa-solid fa-video"></i>
+                        </button>
+                        <button class="dock-circle-btn" id="btn-toggle-mesh" title="Toggle 3D Wireframe">
+                            <i class="fa-solid fa-layer-group"></i>
+                        </button>
+                        <button class="dock-circle-btn" id="btn-toggle-hand" title="Toggle Hand Skeleton">
+                            <i class="fa-solid fa-hand"></i>
+                        </button>
+                        <button class="dock-circle-btn" id="btn-mirror" title="Flip View">
+                            <i class="fa-solid fa-arrow-right-left"></i>
+                        </button>
+                    </div>
+
+                    <!-- Flash & Countdown Overlays -->
+                    <div class="flash-screen" id="flash-screen"></div>
+                    <div class="countdown-overlay" id="countdown-circle">3</div>
+                </div>
+
+                <!-- Stage Action Toolbar -->
+                <div class="stage-action-toolbar">
+                    <button class="mono-btn btn-secondary-lg" id="btn-guide-modal">
+                        <i class="fa-solid fa-book"></i> Gesture System Guide
+                    </button>
+                    <button class="mono-btn btn-primary-lg" id="btn-snapshot">
+                        <i class="fa-solid fa-camera"></i> Save Photo
+                    </button>
+                    <button class="mono-btn btn-outline-lg" id="btn-clear-quick">
+                        <i class="fa-solid fa-rotate-left"></i> Reset Canvas
+                    </button>
+                </div>
+            </section>
+
+            <!-- Sidebar Container -->
+            <aside class="sidebar-container">
+                <!-- Gesture Specification Card -->
+                <div class="mono-card-box" id="gesture-helper-box">
+                    <div class="card-head">
+                        <h3><i class="fa-solid fa-hand-pointer"></i> Touchless Gestures</h3>
+                        <span class="live-tag">Active</span>
+                    </div>
+
+                    <div class="gesture-spec-list">
+                        <div class="spec-row active-spec" id="rule-index">
+                            <div class="spec-emoji">☝️</div>
+                            <div class="spec-info">
+                                <strong>Index Finger</strong>
+                                <p>Draw (Natural Pointing)</p>
+                            </div>
+                        </div>
+
+                        <div class="spec-row" id="rule-palm">
+                            <div class="spec-emoji">🖐️</div>
+                            <div class="spec-info">
+                                <strong>Open Palm</strong>
+                                <p>Erase (Whiteboard Palm Eraser)</p>
+                            </div>
+                        </div>
+
+                        <div class="spec-row" id="rule-fist">
+                            <div class="spec-emoji">✊</div>
+                            <div class="spec-info">
+                                <strong>Closed Fist</strong>
+                                <p>Move / Navigate Freely</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AR Filters Library (Visible in AR Mode) -->
+                <div class="mono-card-box" id="ar-library-box" style="display: none;">
+                    <div class="card-head">
+                        <div>
+                            <h3><i class="fa-solid fa-masks-theater"></i> AR Filter Catalog</h3>
+                            <p class="sub-desc">Click any filter to apply on face</p>
+                        </div>
+                    </div>
+
+                    <div class="style-catalog-grid" id="style-list">
+                        <div class="style-item active" data-filter="sunglasses">
+                            <div class="style-icon-thumb grad-noir">😎</div>
+                            <div class="style-info">
+                                <h4>Aviator Sunglasses</h4>
+                                <p>Dark chrome rims & tinted lenses</p>
+                            </div>
+                            <div class="check-circle"><i class="fa-solid fa-check"></i></div>
+                        </div>
+
+                        <div class="style-item" data-filter="batman">
+                            <div class="style-icon-thumb grad-bat">🦇</div>
+                            <div class="style-info">
+                                <h4>Batman Bat-Cowl</h4>
+                                <p>Iconic Dark Knight cowl & glowing eyes</p>
+                            </div>
+                            <div class="check-circle"><i class="fa-solid fa-check"></i></div>
+                        </div>
+
+                        <div class="style-item" data-filter="skeleton">
+                            <div class="style-icon-thumb grad-skull">💀</div>
+                            <div class="style-info">
+                                <h4>3D Skull Skeleton</h4>
+                                <p>Hollow eye sockets, nasal & teeth jaw</p>
+                            </div>
+                            <div class="check-circle"><i class="fa-solid fa-check"></i></div>
+                        </div>
+
+                        <div class="style-item" data-filter="top_hat">
+                            <div class="style-icon-thumb grad-monocle">🎩</div>
+                            <div class="style-info">
+                                <h4>Monocle & Top Hat</h4>
+                                <p>Victorian Top Hat & Monocle</p>
+                            </div>
+                            <div class="check-circle"><i class="fa-solid fa-check"></i></div>
+                        </div>
+
+                        <div class="style-item" data-filter="cyberpunk">
+                            <div class="style-icon-thumb grad-cyber">⚡</div>
+                            <div class="style-info">
+                                <h4>Monochrome Cyber Code</h4>
+                                <p>High-contrast ocular grid & reticles</p>
+                            </div>
+                            <div class="check-circle"><i class="fa-solid fa-check"></i></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Customization Sliders -->
+                <div class="mono-card-box">
+                    <div class="card-head">
+                        <h3><i class="fa-solid fa-sliders"></i> Fine-Tune Controls</h3>
+                    </div>
+
+                    <div class="slider-field">
+                        <div class="slider-label-row">
+                            <span>Brush / Eraser Size</span>
+                            <strong id="val-brush-size">10px</strong>
+                        </div>
+                        <input type="range" id="slider-brush-size" min="2" max="60" value="10">
+                    </div>
+
+                    <div class="slider-field">
+                        <div class="slider-label-row">
+                            <span>Glow Intensity</span>
+                            <strong id="val-intensity">100%</strong>
+                        </div>
+                        <input type="range" id="slider-intensity" min="20" max="200" value="100">
+                    </div>
+
+                    <div class="slider-field">
+                        <div class="slider-label-row">
+                            <span>Color Hue Shift</span>
+                            <strong id="val-hue">0°</strong>
+                        </div>
+                        <input type="range" id="slider-hue" min="0" max="360" value="0">
+                    </div>
+                </div>
+            </aside>
+        </main>
+    </div>
+
+    <!-- Modal Guide -->
+    <div class="modal-backdrop" id="modal-guide">
+        <div class="mono-modal-card">
+            <div class="modal-header-row">
+                <div class="modal-brand-title">
+                    <i class="fa-solid fa-hand-pointer"></i>
+                    <h2>Gesture Engine Guide</h2>
+                </div>
+                <button class="modal-close-btn" id="btn-close-modal">&times;</button>
+            </div>
+
+            <div class="modal-body-layout">
+                <div class="spec-grid-layout" style="grid-template-columns: repeat(3, 1fr);">
+                    <div class="spec-modal-card">
+                        <div class="card-emoji-header">☝️</div>
+                        <h4>Index Finger</h4>
+                        <span class="card-action-badge">Draw Mode</span>
+                        <p>Natural pointing gesture to paint lines in mid-air.</p>
+                    </div>
+
+                    <div class="spec-modal-card">
+                        <div class="card-emoji-header">🖐️</div>
+                        <h4>Open Palm</h4>
+                        <span class="card-action-badge">Erase Mode</span>
+                        <p>Wipe your open palm across the board like a real whiteboard eraser!</p>
+                    </div>
+
+                    <div class="spec-modal-card">
+                        <div class="card-emoji-header">✊</div>
+                        <h4>Closed Fist</h4>
+                        <span class="card-action-badge">Move Freely</span>
+                        <p>Move around the screen freely without drawing or erasing.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer-row">
+                <button class="mono-btn btn-primary-lg" id="btn-modal-gotit">Launch Studio</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script -->
+    <script src="app.js"></script>
+</body>
+</html>
