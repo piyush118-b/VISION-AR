@@ -40,7 +40,10 @@
 
             <!-- Mode Switcher Tabs -->
             <div class="mono-mode-tabs">
-                <button class="mode-tab-btn active" id="tab-mode-canvas">
+                <button class="mode-tab-btn active" id="tab-mode-facemesh">
+                    <i class="fa-solid fa-network-wired"></i> 468 Face Mesh
+                </button>
+                <button class="mode-tab-btn" id="tab-mode-canvas">
                     <i class="fa-solid fa-pen-nib"></i> Air Canvas
                 </button>
                 <button class="mode-tab-btn" id="tab-mode-ar">
@@ -55,14 +58,35 @@
                 </div>
 
                 <div class="status-pill pill-gesture-active" id="pill-gesture">
-                    <span id="txt-gesture-emoji">☝️</span>
-                    <span id="txt-gesture-name">Index Finger: Draw</span>
+                    <span id="txt-gesture-emoji">✨</span>
+                    <span id="txt-gesture-name">468 Face Mesh Active</span>
                 </div>
             </div>
         </header>
 
-        <!-- Air Canvas Palette Bar -->
-        <div class="mono-palette-bar" id="palette-bar">
+        <!-- FaceMesh Customization Bar (Visible in FaceMesh Mode) -->
+        <div class="mono-palette-bar" id="facemesh-bar">
+            <span class="palette-title"><i class="fa-solid fa-network-wired"></i> Mesh Glow:</span>
+            <div class="swatch-item active mesh-swatch" data-mesh-color="#00f0ff" style="background: #00f0ff;" title="Neon Cyan"></div>
+            <div class="swatch-item mesh-swatch" data-mesh-color="#10b981" style="background: #10b981;" title="Matrix Emerald"></div>
+            <div class="swatch-item mesh-swatch" data-mesh-color="#ffffff" style="background: #ffffff;" title="Pure White"></div>
+            <div class="swatch-item mesh-swatch" data-mesh-color="#ec4899" style="background: #ec4899;" title="Cyber Pink"></div>
+            <div class="swatch-item mesh-swatch" data-mesh-color="#eab308" style="background: #eab308;" title="Electric Gold"></div>
+            
+            <div class="bar-separator"></div>
+
+            <div class="mesh-toggle-group">
+                <button class="mono-btn btn-secondary-sm active" id="btn-toggle-tesselation">
+                    <i class="fa-solid fa-draw-polygon"></i> Triangulation Mesh
+                </button>
+                <button class="mono-btn btn-secondary-sm active" id="btn-toggle-nodes">
+                    <i class="fa-solid fa-circle-dot"></i> 468 Landmark Nodes
+                </button>
+            </div>
+        </div>
+
+        <!-- Air Canvas Palette Bar (Visible in Canvas Mode) -->
+        <div class="mono-palette-bar" id="palette-bar" style="display: none;">
             <span class="palette-title"><i class="fa-solid fa-swatchbook"></i> Palette:</span>
             <div class="swatch-item active" data-color="#ffffff" style="background: #ffffff;" title="Pure White"></div>
             <div class="swatch-item" data-color="#00f0ff" style="background: #00f0ff;" title="Cyan Accent"></div>
@@ -97,10 +121,10 @@
 
                     <!-- Gesture Toast Badge -->
                     <div class="mono-toast" id="gesture-toast">
-                        <div class="toast-emoji-box" id="toast-emoji-box">☝️</div>
+                        <div class="toast-emoji-box" id="toast-emoji-box">✨</div>
                         <div class="toast-meta">
-                            <h4 id="toast-title">Index Finger Detected</h4>
-                            <p id="toast-sub">Drawing Mode Active</p>
+                            <h4 id="toast-title">468 Face Mesh Detection</h4>
+                            <p id="toast-sub">Tracking 468 facial landmark coordinates in real-time</p>
                         </div>
                     </div>
 
@@ -109,7 +133,7 @@
                         <button class="dock-circle-btn" id="btn-toggle-cam" title="Toggle Camera">
                             <i class="fa-solid fa-video"></i>
                         </button>
-                        <button class="dock-circle-btn" id="btn-toggle-mesh" title="Toggle 3D Wireframe">
+                        <button class="dock-circle-btn active" id="btn-toggle-mesh" title="Toggle 3D Wireframe">
                             <i class="fa-solid fa-layer-group"></i>
                         </button>
                         <button class="dock-circle-btn" id="btn-toggle-hand" title="Toggle Hand Skeleton">
@@ -141,8 +165,59 @@
 
             <!-- Sidebar Container -->
             <aside class="sidebar-container">
-                <!-- Gesture Specification Card -->
-                <div class="mono-card-box" id="gesture-helper-box">
+                <!-- 1. FACE MESH PROJECT & TELEMETRY CARD (Default First Section) -->
+                <div class="mono-card-box" id="facemesh-box">
+                    <div class="card-head">
+                        <div>
+                            <h3><i class="fa-solid fa-network-wired"></i> 468 Face Mesh</h3>
+                            <p class="sub-desc">Real-Time Facial Landmark Tracking</p>
+                        </div>
+                        <span class="live-tag">Active</span>
+                    </div>
+
+                    <!-- Live Telemetry Grid -->
+                    <div class="telemetry-grid">
+                        <div class="telemetry-pill">
+                            <span class="telem-label">Landmarks</span>
+                            <span class="telem-value" id="telem-pts">468 / 468</span>
+                        </div>
+                        <div class="telemetry-pill">
+                            <span class="telem-label">Eyes (EAR)</span>
+                            <span class="telem-value" id="telem-eyes">Open (0.32)</span>
+                        </div>
+                        <div class="telemetry-pill">
+                            <span class="telem-label">Mouth / Smile</span>
+                            <span class="telem-value" id="telem-mouth">Neutral</span>
+                        </div>
+                        <div class="telemetry-pill">
+                            <span class="telem-label">Head Roll / Yaw</span>
+                            <span class="telem-value" id="telem-pose">0.0° / 0.0°</span>
+                        </div>
+                    </div>
+
+                    <!-- Tech Stack Badges -->
+                    <div class="cv-tech-stack">
+                        <span class="tech-badge"><i class="fa-brands fa-python"></i> Python</span>
+                        <span class="tech-badge"><i class="fa-solid fa-eye"></i> OpenCV</span>
+                        <span class="tech-badge"><i class="fa-solid fa-brain"></i> MediaPipe</span>
+                        <span class="tech-badge"><i class="fa-solid fa-cube"></i> WebGL</span>
+                    </div>
+
+                    <!-- Applications Checklist -->
+                    <div class="cv-apps-block">
+                        <h4><i class="fa-solid fa-microchip"></i> Key Applications:</h4>
+                        <ul class="cv-apps-list">
+                            <li><i class="fa-solid fa-circle-check"></i> Augmented Reality (AR) Filters</li>
+                            <li><i class="fa-solid fa-circle-check"></i> Facial Feature & Gaze Tracking</li>
+                            <li><i class="fa-solid fa-circle-check"></i> Virtual Try-On (Eyewear & Makeup)</li>
+                            <li><i class="fa-solid fa-circle-check"></i> Expression Analysis & Blink Detection</li>
+                            <li><i class="fa-solid fa-circle-check"></i> 3D Face Geometry & Animation</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- 2. Gesture Specification Card (Visible in Canvas Mode) -->
+                <div class="mono-card-box" id="gesture-helper-box" style="display: none;">
                     <div class="card-head">
                         <h3><i class="fa-solid fa-hand-pointer"></i> Touchless Gestures</h3>
                         <span class="live-tag">Active</span>
@@ -175,7 +250,7 @@
                     </div>
                 </div>
 
-                <!-- AR Filters Library (Visible in AR Mode) -->
+                <!-- 3. AR Filters Library (Visible in AR Mode) -->
                 <div class="mono-card-box" id="ar-library-box" style="display: none;">
                     <div class="card-head">
                         <div>
