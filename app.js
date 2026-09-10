@@ -827,101 +827,153 @@ function renderActiveFilter(ctx, landmarks) {
     ctx.filter = 'none';
 }
 
-// 1. LUXURY AVIATOR SUNGLASSES (POLARIZED LENSES + GOLD FRAME + GLARE)
+// 1. MODERN LUXURY BLACK WAYFARER SUNGLASSES (GLOSS ONYX ACETATE + SMOKED POLARIZED LENSES + SILVER RIVETS + SPECULAR GLARES)
 function drawAviatorGlassesSkinLayer(ctx, sf, lm, w, h) {
     ctx.save();
-    ctx.translate(sf.x, sf.y + sf.scale * 0.05);
+    // Anchor over the eyes & nose bridge for realistic ergonomic fit
+    ctx.translate(sf.x, sf.y + sf.scale * 0.04);
     ctx.rotate(sf.angle);
 
-    const s = sf.scale * 0.011 * state.intensity; // scale factor
-    const eyeDist = sf.scale * 0.48;
+    const s = sf.scale * 0.0105 * (state.intensity || 1.0);
+    const eyeDist = sf.scale * 0.46;
 
-    // A) Metallic Gold Frame Gradient
-    const goldGrad = ctx.createLinearGradient(-sf.scale, -30 * s, sf.scale, 30 * s);
-    goldGrad.addColorStop(0, '#fef08a');
-    goldGrad.addColorStop(0.3, '#eab308');
-    goldGrad.addColorStop(0.7, '#ca8a04');
-    goldGrad.addColorStop(1, '#fef08a');
+    // A) Frame Colors & Gradients
+    const frameGrad = ctx.createLinearGradient(0, -35 * s, 0, 35 * s);
+    frameGrad.addColorStop(0, '#27272a'); // subtle light on top rim
+    frameGrad.addColorStop(0.2, '#18181b');
+    frameGrad.addColorStop(0.8, '#09090b');
+    frameGrad.addColorStop(1, '#000000');
 
-    // B) Polarized Dark Lens Gradient
-    const lensGrad = ctx.createLinearGradient(0, -35 * s, 0, 45 * s);
-    lensGrad.addColorStop(0, 'rgba(30, 41, 59, 0.95)');
-    lensGrad.addColorStop(0.5, 'rgba(15, 23, 42, 0.98)');
-    lensGrad.addColorStop(1, 'rgba(2, 6, 23, 0.99)');
+    const frameHighlight = ctx.createLinearGradient(0, -30 * s, 0, -15 * s);
+    frameHighlight.addColorStop(0, 'rgba(255, 255, 255, 0.45)');
+    frameHighlight.addColorStop(1, 'rgba(255, 255, 255, 0.0)');
 
-    // Function to draw individual teardrop aviator lens
-    function drawAviatorLens(centerX, flip) {
-        ctx.save();
-        ctx.translate(centerX, 0);
-        if (flip) ctx.scale(-1, 1);
+    // B) Smoked Polarized Lens Gradient (Deep tinted black/charcoal)
+    const lensGrad = ctx.createLinearGradient(0, -25 * s, 0, 35 * s);
+    lensGrad.addColorStop(0, 'rgba(10, 15, 25, 0.96)');
+    lensGrad.addColorStop(0.45, 'rgba(18, 24, 38, 0.92)');
+    lensGrad.addColorStop(1, 'rgba(30, 41, 59, 0.85)');
 
-        // Teardrop Aviator Path
+    // Helper: Create smooth Wayfarer lens path
+    function createLensPath(centerX, flip) {
         ctx.beginPath();
-        ctx.moveTo(-32 * s, -18 * s);
-        ctx.quadraticCurveTo(0, -26 * s, 30 * s, -20 * s); // Top brow curve
-        ctx.quadraticCurveTo(40 * s, 0, 32 * s, 26 * s);   // Outer edge
-        ctx.quadraticCurveTo(18 * s, 46 * s, -6 * s, 44 * s); // Teardrop bottom
-        ctx.quadraticCurveTo(-38 * s, 36 * s, -38 * s, 6 * s); // Inner nasal curve
+        const dir = flip ? -1 : 1;
+        ctx.moveTo(centerX - 24 * s * dir, -18 * s);
+        ctx.lineTo(centerX + 26 * s * dir, -22 * s);
+        ctx.quadraticCurveTo(centerX + 34 * s * dir, -20 * s, centerX + 32 * s * dir, -10 * s);
+        ctx.lineTo(centerX + 24 * s * dir, 16 * s);
+        ctx.quadraticCurveTo(centerX + 18 * s * dir, 28 * s, centerX + 8 * s * dir, 28 * s);
+        ctx.lineTo(centerX - 10 * s * dir, 26 * s);
+        ctx.quadraticCurveTo(centerX - 24 * s * dir, 24 * s, centerX - 25 * s * dir, 10 * s);
+        ctx.lineTo(centerX - 25 * s * dir, -8 * s);
+        ctx.quadraticCurveTo(centerX - 25 * s * dir, -18 * s, centerX - 24 * s * dir, -18 * s);
         ctx.closePath();
+    }
 
-        // Fill Polarized Lens
+    // 1. Cast Subtle Drop Shadow onto Face
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.55)';
+    ctx.shadowBlur = 12 * s;
+    ctx.shadowOffsetY = 6 * s;
+
+    // 2. Draw Acetate Frame Wings / Temples (extending toward ears)
+    ctx.fillStyle = frameGrad;
+    ctx.beginPath();
+    ctx.moveTo(-eyeDist - 30 * s, -24 * s);
+    ctx.lineTo(-eyeDist - 65 * s, -20 * s);
+    ctx.lineTo(-eyeDist - 65 * s, -6 * s);
+    ctx.lineTo(-eyeDist - 30 * s, -2 * s);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.moveTo(eyeDist + 30 * s, -24 * s);
+    ctx.lineTo(eyeDist + 65 * s, -20 * s);
+    ctx.lineTo(eyeDist + 65 * s, -6 * s);
+    ctx.lineTo(eyeDist + 30 * s, -2 * s);
+    ctx.closePath();
+    ctx.fill();
+
+    // 3. Central Keyhole Nose Bridge
+    ctx.beginPath();
+    ctx.moveTo(-eyeDist + 24 * s, -20 * s);
+    ctx.quadraticCurveTo(0, -23 * s, eyeDist - 24 * s, -20 * s);
+    ctx.lineTo(eyeDist - 24 * s, -6 * s);
+    ctx.quadraticCurveTo(0, -15 * s, -eyeDist + 24 * s, -6 * s);
+    ctx.closePath();
+    ctx.fill();
+
+    // Reset shadow for lens interiors
+    ctx.shadowColor = 'transparent';
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetY = 0;
+
+    // 4. Draw Left & Right Lenses + Gloss Rims
+    [-1, 1].forEach((dir) => {
+        const flip = dir > 0;
+        const centerX = dir * eyeDist;
+
+        // Draw Thick Acetate Outer Rim
+        createLensPath(centerX, flip);
+        ctx.fillStyle = frameGrad;
+        ctx.lineWidth = 10 * s;
+        ctx.lineJoin = 'round';
+        ctx.strokeStyle = frameGrad;
+        ctx.stroke();
+
+        // Fill Smoked Lens
+        createLensPath(centerX, flip);
         ctx.fillStyle = lensGrad;
         ctx.fill();
 
-        // Diagonal Specular Reflection Streaks
+        // Lens Inner Rim Bevel
+        ctx.strokeStyle = 'rgba(0, 0, 0, 0.8)';
+        ctx.lineWidth = 1.5 * s;
+        ctx.stroke();
+
+        // Premium Specular Glare Reflection (Diagonal Highlights)
         ctx.save();
-        ctx.clip(); // Clip glare to inside lens
-        const glareGrad = ctx.createLinearGradient(-25 * s, -25 * s, 25 * s, 25 * s);
-        glareGrad.addColorStop(0, 'rgba(255, 255, 255, 0.45)');
-        glareGrad.addColorStop(0.2, 'rgba(255, 255, 255, 0.05)');
-        glareGrad.addColorStop(0.4, 'rgba(255, 255, 255, 0.35)');
-        glareGrad.addColorStop(0.6, 'rgba(255, 255, 255, 0.0)');
-        ctx.fillStyle = glareGrad;
+        createLensPath(centerX, flip);
+        ctx.clip(); // Strictly clip reflection to inside lens
+
+        const glare1 = ctx.createLinearGradient(centerX - 35 * s, -35 * s, centerX + 35 * s, 35 * s);
+        glare1.addColorStop(0.15, 'rgba(255, 255, 255, 0.0)');
+        glare1.addColorStop(0.35, 'rgba(255, 255, 255, 0.40)');
+        glare1.addColorStop(0.48, 'rgba(255, 255, 255, 0.08)');
+        glare1.addColorStop(0.55, 'rgba(255, 255, 255, 0.22)');
+        glare1.addColorStop(0.70, 'rgba(255, 255, 255, 0.0)');
+
+        ctx.fillStyle = glare1;
+        ctx.fillRect(centerX - 50 * s, -50 * s, 100 * s, 100 * s);
+
+        const skyGrad = ctx.createLinearGradient(0, -20 * s, 0, 5 * s);
+        skyGrad.addColorStop(0, 'rgba(56, 189, 248, 0.12)');
+        skyGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        ctx.fillStyle = skyGrad;
+        ctx.fillRect(centerX - 50 * s, -30 * s, 100 * s, 35 * s);
+
+        ctx.restore();
+
+        // Iconic Silver Metallic Pill Rivet on outer frame corner
+        const rivetX = centerX + (flip ? 31 * s : -31 * s);
+        const rivetY = -21 * s;
+        ctx.save();
+        ctx.translate(rivetX, rivetY);
+        ctx.rotate(flip ? -0.15 : 0.15);
+        ctx.fillStyle = '#e4e4e7';
+        ctx.shadowColor = 'rgba(255, 255, 255, 0.6)';
+        ctx.shadowBlur = 2 * s;
         ctx.beginPath();
-        ctx.rect(-50 * s, -50 * s, 100 * s, 100 * s);
+        ctx.ellipse(0, 0, 3.2 * s, 1.6 * s, 0, 0, Math.PI * 2);
         ctx.fill();
         ctx.restore();
+    });
 
-        // Gold Rim (Outer & Inner)
-        ctx.strokeStyle = goldGrad;
-        ctx.lineWidth = 3.5 * s;
-        ctx.stroke();
-
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
-        ctx.lineWidth = 1 * s;
-        ctx.stroke();
-
-        ctx.restore();
-    }
-
-    // Draw Left & Right Lenses
-    drawAviatorLens(-eyeDist, false);
-    drawAviatorLens(eyeDist, true);
-
-    // C) Double Metallic Brow & Nose Bars
-    ctx.strokeStyle = goldGrad;
-    ctx.lineWidth = 3 * s;
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
-    ctx.shadowBlur = 4 * s;
-
-    // Top Brow Bar
+    // 5. Glossy Frame Top Highlight (Catching light along upper brow)
+    ctx.strokeStyle = frameHighlight;
+    ctx.lineWidth = 1.8 * s;
     ctx.beginPath();
-    ctx.moveTo(-eyeDist + 15 * s, -24 * s);
-    ctx.quadraticCurveTo(0, -28 * s, eyeDist - 15 * s, -24 * s);
-    ctx.stroke();
-
-    // Central Bridge
-    ctx.beginPath();
-    ctx.moveTo(-eyeDist + 26 * s, -8 * s);
-    ctx.quadraticCurveTo(0, -14 * s, eyeDist - 26 * s, -8 * s);
-    ctx.stroke();
-
-    // Temple Arms (Extending to ears)
-    ctx.beginPath();
-    ctx.moveTo(-eyeDist - 34 * s, -12 * s);
-    ctx.lineTo(-eyeDist - 65 * s, -14 * s);
-    ctx.moveTo(eyeDist + 34 * s, -12 * s);
-    ctx.lineTo(eyeDist + 65 * s, -14 * s);
+    ctx.moveTo(-eyeDist - 26 * s, -25 * s);
+    ctx.quadraticCurveTo(0, -29 * s, eyeDist + 26 * s, -25 * s);
     ctx.stroke();
 
     ctx.restore();
